@@ -1,5 +1,15 @@
 export default async function handler(req, res) {
-  // Only allow POST requests
+  // 1. ADD CORS HEADERS - This allows your GitHub Pages frontend to talk to this Vercel backend
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Allows any domain to connect. You can restrict this to your GitHub Pages URL later if you want.
+  res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // 2. HANDLE PREFLIGHT REQUEST - Browsers send an 'OPTIONS' request first to check permissions
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // 3. ONLY ALLOW POST REQUESTS
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -7,15 +17,12 @@ export default async function handler(req, res) {
   const SYSTEM_PROMPT = "You are RomaniaAI, an expert AI assistant helping people navigate life in Romania — bureaucracy, banking, taxes, housing, visas, company registration, healthcare. Respond with raw HTML only, no markdown, no code fences. For steps use: <div class='step'><div class='step-num'>1</div><div class='step-text'>detail</div></div>. For links use: <span class='link-chip'>Site Name</span>. For warnings use: <div class='warning-box'>warning text</div>. Start with <strong>Title</strong> then a brief intro. Be practical and mention Romanian institutions like ANAF, IGI, ONRC where relevant.";
 
   try {
-    // We are grabbing the chat history sent from your frontend
     const userMessages = req.body.messages || [];
 
-    // Make the secure request to OpenRouter
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // process.env is how we securely inject the key later in the Vercel dashboard!
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}` 
       },
       body: JSON.stringify({
@@ -26,8 +33,6 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    
-    // Send OpenRouter's response back to your frontend
     res.status(200).json(data);
 
   } catch (error) {
