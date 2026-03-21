@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'nvidia/nemotron-super-49b-v1:free', // ← only thing that changed
+        model: 'nvidia/nemotron-3-super-120b-a12b:free', // ← only thing that changed
         max_tokens: 1000,
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...userMessages]
       })
